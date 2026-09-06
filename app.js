@@ -470,6 +470,9 @@ const state = {
   loginName: '',
   loginConfirm: '',
   loginError: '',
+  loginQuestion: 0,
+  loginSecurityAnswer: '',
+  forgotStep: 1,
   accountId: '',
   uiLanguage: (() => { try { return localStorage.getItem('manthanUiLanguage') || 'en'; } catch (e) { return 'en'; } })(),
   languageMenuOpen: false,
@@ -657,6 +660,13 @@ const indianLanguages = [
   { code: 'te', native: 'తెలుగు', name: 'Telugu' },
   { code: 'ur', native: 'اردو', name: 'Urdu' },
 ];
+const securityQuestions = [
+  'Aapka nickname kya hai?',
+  'Aapke favourite teacher ka naam kya hai?',
+  'Aapka home town kaun sa hai?',
+  'Aapka favourite subject kya hai?',
+];
+function normalizeSecurityAnswer(value) { return String(value || '').trim().toLowerCase().replace(/\s+/g, ' '); }
 function currentLanguage() { return indianLanguages.find(item => item.code === state.uiLanguage) || indianLanguages[0]; }
 function setTranslateCookie(code) {
   const value = code === 'en' ? '/en/en' : `/en/${code}`;
@@ -1391,13 +1401,32 @@ function openAccount(userId, name) {
   toast(`Welcome, ${name || userId} — your account is open.`);
 }
 
+function forgotPanel() {
+  const id = normalizeLoginId(state.loginId);
+  const user = manthanUsers()[id];
+  const error = state.loginError ? `<div class="login-error" role="alert">${icon('info', 13)}<span>${escapeHtml(state.loginError)}</span></div>` : '';
+  const back = `<button class="text-link" data-action="login-mode" data-mode="signin">${icon('arrowLeft', 13)} Back to sign in</button>`;
+  if (state.forgotStep === 1) {
+    return `${back}<h2 style="margin-top:14px">Password bhool gaye?</h2><p>Apna User ID daaliye — account verify karke hum naya password set karwayenge.</p><label class="form-label" for="loginIdInput">User ID</label><input class="text-input" id="loginIdInput" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="Your User ID" value="${escapeHtml(state.loginId)}">${error}<button class="btn btn-primary" data-action="login-forgot-id">Continue ${icon('arrowRight', 15)}</button><div class="otp-note">${icon('lock', 13)} Account create karte waqt chuna gaya <strong>security question</strong> (ya registered naam) verify hota hai, isliye password sirf aap reset kar sakte hain.</div>`;
+  }
+  if (state.forgotStep === 2) {
+    const viaQuestion = Boolean(user && user.secHash);
+    const field = viaQuestion
+      ? `<div class="otp-note" style="margin-bottom:14px">${icon('info', 13)} <strong>Security question:</strong> ${escapeHtml(user.secQ || securityQuestions[0])}</div><label class="form-label" for="loginSecurityAnswer">Security answer</label><input class="text-input" id="loginSecurityAnswer" autocomplete="off" placeholder="Aapka jawab" value="${escapeHtml(state.loginSecurityAnswer)}">`
+      : `<div class="otp-note" style="margin-bottom:14px">${icon('info', 13)} Is account ke liye security question set nahi tha — verify karne ke liye <strong>registered full name</strong> daaliye.</div><label class="form-label" for="loginNameInput">Registered full name</label><input class="text-input" id="loginNameInput" autocomplete="name" placeholder="Your full name" value="${escapeHtml(state.loginName)}">`;
+    return `${back}<h2 style="margin-top:14px">Account verify karein</h2><p>User ID: <strong>${escapeHtml(id)}</strong></p>${field}${error}<button class="btn btn-primary" data-action="login-forgot-verify">Verify ${icon('arrowRight', 15)}</button>`;
+  }
+  return `${back}<h2 style="margin-top:14px">Naya password set karein</h2><p>Account verify ho gaya. Ab naya password chuniye.</p><label class="form-label" for="loginPasswordInput">New password</label><input class="text-input" id="loginPasswordInput" type="password" autocomplete="new-password" placeholder="At least 4 characters" value="${escapeHtml(state.loginPassword)}"><label class="form-label" for="loginConfirmInput">Confirm new password</label><input class="text-input" id="loginConfirmInput" type="password" autocomplete="new-password" placeholder="Repeat the password" value="${escapeHtml(state.loginConfirm)}">${error}<button class="btn btn-primary" data-action="login-forgot-reset">Reset password ${icon('check', 15)}</button>`;
+}
+
 function loginScreen() {
   const isCreate = state.loginMode === 'create';
   const tabs = `<div class="login-tabs" role="tablist" aria-label="Authentication"><button class="login-tab ${isCreate ? '' : 'active'}" role="tab" data-action="login-mode" data-mode="signin">Sign in</button><button class="login-tab ${isCreate ? 'active' : ''}" role="tab" data-action="login-mode" data-mode="create">Create account</button></div>`;
   const error = state.loginError ? `<div class="login-error" role="alert">${icon('info', 13)}<span>${escapeHtml(state.loginError)}</span></div>` : '';
   let panel = '';
-  if (!isCreate) panel = `<h2>Welcome back.</h2><p>Sign in with your User ID and password to open your account.</p><label class="form-label" for="loginIdInput">User ID</label><input class="text-input" id="loginIdInput" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="e.g. priya_2026" value="${escapeHtml(state.loginId)}"><label class="form-label" for="loginPasswordInput">Password</label><input class="text-input" id="loginPasswordInput" type="password" autocomplete="current-password" placeholder="Your password" value="${escapeHtml(state.loginPassword)}">${error}<button class="btn btn-primary" data-action="login-signin">Sign in ${icon('arrowRight', 15)}</button><div class="otp-note">${icon('lock', 13)} <strong>New to Manthan Prep?</strong> <button class="text-link" data-action="login-mode" data-mode="create">Create your ID &amp; password</button> — it takes 20 seconds.</div>`;
-  else panel = `<h2>Create your account.</h2><p>Choose a User ID and password — only you can open this account.</p><label class="form-label" for="loginNameInput">Full name</label><input class="text-input" id="loginNameInput" autocomplete="name" placeholder="Apna poora naam" value="${escapeHtml(state.loginName)}"><label class="form-label" for="loginIdInput">User ID</label><input class="text-input" id="loginIdInput" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="Letters, numbers, dot, dash" value="${escapeHtml(state.loginId)}"><label class="form-label" for="loginPasswordInput">Password</label><input class="text-input" id="loginPasswordInput" type="password" autocomplete="new-password" placeholder="At least 4 characters" value="${escapeHtml(state.loginPassword)}"><label class="form-label" for="loginConfirmInput">Confirm password</label><input class="text-input" id="loginConfirmInput" type="password" autocomplete="new-password" placeholder="Repeat the password" value="${escapeHtml(state.loginConfirm)}">${error}<button class="btn btn-primary" data-action="login-create">Create account &amp; sign in ${icon('arrowRight', 15)}</button><div class="otp-note">${icon('user', 13)} Already have an ID? <button class="text-link" data-action="login-mode" data-mode="signin">Sign in</button></div>`;
+  if (state.loginMode === 'signin') panel = `<h2>Welcome back.</h2><p>Sign in with your User ID and password to open your account.</p><label class="form-label" for="loginIdInput">User ID</label><input class="text-input" id="loginIdInput" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="e.g. priya_2026" value="${escapeHtml(state.loginId)}"><label class="form-label" for="loginPasswordInput">Password</label><input class="text-input" id="loginPasswordInput" type="password" autocomplete="current-password" placeholder="Your password" value="${escapeHtml(state.loginPassword)}"><div class="login-forgot-row"><button class="text-link" data-action="login-mode" data-mode="forgot">${icon('lock', 12)} Forgot password?</button></div>${error}<button class="btn btn-primary" data-action="login-signin">Sign in ${icon('arrowRight', 15)}</button><div class="otp-note">${icon('lock', 13)} <strong>New to Manthan Prep?</strong> <button class="text-link" data-action="login-mode" data-mode="create">Create your ID &amp; password</button> — it takes 20 seconds.</div>`;
+  else if (isCreate) panel = `<h2>Create your account.</h2><p>Choose a User ID and password — only you can open this account.</p><label class="form-label" for="loginNameInput">Full name</label><input class="text-input" id="loginNameInput" autocomplete="name" placeholder="Apna poora naam" value="${escapeHtml(state.loginName)}"><label class="form-label" for="loginIdInput">User ID</label><input class="text-input" id="loginIdInput" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="Letters, numbers, dot, dash" value="${escapeHtml(state.loginId)}"><label class="form-label" for="loginPasswordInput">Password</label><input class="text-input" id="loginPasswordInput" type="password" autocomplete="new-password" placeholder="At least 4 characters" value="${escapeHtml(state.loginPassword)}"><label class="form-label" for="loginConfirmInput">Confirm password</label><input class="text-input" id="loginConfirmInput" type="password" autocomplete="new-password" placeholder="Repeat the password" value="${escapeHtml(state.loginConfirm)}"><label class="form-label" for="loginQuestionSelect">Security question (password recovery)</label><select id="loginQuestionSelect" class="text-input login-select">${securityQuestions.map((q, i) => `<option value="${i}" ${state.loginQuestion === i ? 'selected' : ''}>${escapeHtml(q)}</option>`).join('')}</select><label class="form-label" for="loginSecurityAnswer">Security answer</label><input class="text-input" id="loginSecurityAnswer" autocomplete="off" placeholder="Jawab yaad rakhein — recovery isi se hogi" value="${escapeHtml(state.loginSecurityAnswer)}">${error}<button class="btn btn-primary" data-action="login-create">Create account &amp; sign in ${icon('arrowRight', 15)}</button><div class="otp-note">${icon('user', 13)} Already have an ID? <button class="text-link" data-action="login-mode" data-mode="signin">Sign in</button></div>`;
+  else panel = forgotPanel();
   return `<div class="login-screen"><button class="lang-btn login-lang" data-action="open-language-menu" aria-label="Choose language">${icon('globe', 15)}<span>${currentLanguage().native}</span></button><section class="login-visual"><div class="brand"><span class="brand-mark">M</span><div><div class="brand-name">Manthan Prep</div><div class="brand-sub">Analytical learning</div></div></div><div class="login-quote"><div class="eyebrow">For the serious aspirant</div><h1>Think clearly.<br><em>Prepare deeply.</em></h1><p>A calm, analytical workspace for the long road to public service – concepts, current affairs, practice and accountability in one place.</p></div><div class="login-feature-row"><div class="login-feature"><strong>13 study surfaces</strong>From syllabus to answer writing</div><div class="login-feature"><strong>Detailed explanations</strong>Learn beyond right or wrong</div><div class="login-feature"><strong>Peer accountability</strong>Progress together</div></div></section><section class="login-panel"><div class="login-box"><div class="brand"><span class="brand-mark">M</span><div><div class="brand-name">Manthan Prep</div><div class="brand-sub">Analytical learning</div></div></div>${tabs}${panel}<p style="font-size:10px;color:#a0adbb;margin-top:28px;text-align:center">By continuing, you agree to Manthan Prep’s terms and privacy policy.</p></div></section></div>`;
 }
 
@@ -1818,8 +1847,8 @@ function handleAction(action, el) {
     case 'edit-profile': openProfileEditor(); break;
     case 'save-profile': saveProfileEditor(); break;
     case 'close-profile-editor': closeProfileEditor(); break;
-    case 'signout': endSession(); state.accountId = ''; state.screen = 'login'; state.loginMode = 'signin'; state.loginError = ''; state.loginPassword = ''; state.loginConfirm = ''; state.photoModal = null; state.profileLoaded = false; state.profileLoading = false; state.profileRefreshInFlight = false; state.profileRecord = null; state.profileEditOpen = false; render(); toast('Signed out. See you at the next session.'); break;
-    case 'login-mode': state.loginMode = data.mode === 'create' ? 'create' : 'signin'; state.loginError = ''; render(); break;
+    case 'signout': endSession(); state.accountId = ''; state.screen = 'login'; state.loginMode = 'signin'; state.loginError = ''; state.forgotStep = 1; state.loginPassword = ''; state.loginConfirm = ''; state.photoModal = null; state.profileLoaded = false; state.profileLoading = false; state.profileRefreshInFlight = false; state.profileRecord = null; state.profileEditOpen = false; render(); toast('Signed out. See you at the next session.'); break;
+    case 'login-mode': state.loginMode = data.mode === 'create' ? 'create' : (data.mode === 'forgot' ? 'forgot' : 'signin'); state.loginError = ''; state.forgotStep = 1; render(); break;
     case 'open-language-menu': state.languageMenuOpen = true; render(); break;
     case 'close-language-menu': state.languageMenuOpen = false; render(); break;
     case 'select-ui-language': {
@@ -1858,12 +1887,60 @@ function handleAction(action, el) {
       if (!/^[a-z0-9][a-z0-9._-]{2,19}$/.test(id)) { state.loginError = 'User ID must be 3-20 characters: letters, numbers, dot, dash; starting with a letter or number.'; render(); return; }
       if (password.length < 4) { state.loginError = 'Password must be at least 4 characters long.'; render(); return; }
       if (password !== confirm) { state.loginError = 'Passwords do not match. Please retype them.'; render(); return; }
+      const securityAnswer = (document.getElementById('loginSecurityAnswer')?.value ?? state.loginSecurityAnswer).trim();
+      if (securityAnswer.length < 2) { state.loginError = 'Security answer is required — password recovery will use it.'; render(); return; }
       const users = manthanUsers();
       if (users[id]) { state.loginError = 'This User ID is already taken — switch to Sign in.'; render(); return; }
       const salt = `${Math.random().toString(36).slice(2, 10)}${Date.now().toString(36)}`;
-      users[id] = { name, salt, hash: hashPassword(password, salt), createdAt: new Date().toISOString() };
+      users[id] = { name, salt, hash: hashPassword(password, salt), secQ: securityQuestions[state.loginQuestion] || securityQuestions[0], secHash: hashPassword(normalizeSecurityAnswer(securityAnswer), salt), createdAt: new Date().toISOString() };
       saveManthanUsers(users);
       openAccount(id, name);
+      break;
+    }
+    case 'login-forgot-id': {
+      const id = normalizeLoginId(document.getElementById('loginIdInput')?.value ?? state.loginId);
+      state.loginId = id;
+      if (!id) { state.loginError = 'Please enter your User ID.'; render(); return; }
+      if (!manthanUsers()[id]) { state.loginError = 'No account found with this User ID.'; render(); return; }
+      state.loginSecurityAnswer = '';
+      state.forgotStep = 2;
+      state.loginError = '';
+      render();
+      break;
+    }
+    case 'login-forgot-verify': {
+      const users = manthanUsers();
+      const user = users[state.loginId];
+      if (!user) { state.forgotStep = 1; state.loginError = 'Account not found. Start again.'; render(); return; }
+      const verified = user.secHash
+        ? user.secHash === hashPassword(normalizeSecurityAnswer(document.getElementById('loginSecurityAnswer')?.value ?? state.loginSecurityAnswer), user.salt)
+        : normalizeSecurityAnswer(document.getElementById('loginNameInput')?.value ?? state.loginName) === normalizeSecurityAnswer(user.name);
+      if (!verified) { state.loginError = 'Verification failed — the answer does not match our records.'; render(); return; }
+      state.loginPassword = '';
+      state.loginConfirm = '';
+      state.forgotStep = 3;
+      state.loginError = '';
+      render();
+      break;
+    }
+    case 'login-forgot-reset': {
+      const users = manthanUsers();
+      const user = users[state.loginId];
+      if (!user) { state.forgotStep = 1; state.loginError = 'Account not found. Start again.'; render(); return; }
+      const password = document.getElementById('loginPasswordInput')?.value ?? state.loginPassword;
+      const confirm = document.getElementById('loginConfirmInput')?.value ?? state.loginConfirm;
+      if (password.length < 4) { state.loginError = 'Password must be at least 4 characters long.'; render(); return; }
+      if (password !== confirm) { state.loginError = 'Passwords do not match. Please retype them.'; render(); return; }
+      user.hash = hashPassword(password, user.salt);
+      saveManthanUsers(users);
+      state.loginPassword = '';
+      state.loginConfirm = '';
+      state.loginSecurityAnswer = '';
+      state.loginMode = 'signin';
+      state.forgotStep = 1;
+      state.loginError = '';
+      render();
+      toast('Password reset! You can sign in with your new password.');
       break;
     }
     case 'select-exam': state.setupExam = data.exam; render(); break;
@@ -1906,6 +1983,7 @@ document.addEventListener('input', event => {
   if (event.target.id === 'loginPasswordInput') state.loginPassword = event.target.value;
   if (event.target.id === 'loginNameInput') state.loginName = event.target.value;
   if (event.target.id === 'loginConfirmInput') state.loginConfirm = event.target.value;
+  if (event.target.id === 'loginSecurityAnswer') state.loginSecurityAnswer = event.target.value;
 });
 
 document.addEventListener('keydown', event => {
@@ -1913,15 +1991,18 @@ document.addEventListener('keydown', event => {
     event.preventDefault();
     checkPaheliTypedAnswer();
   }
-  const loginInputs = ['loginIdInput', 'loginPasswordInput', 'loginNameInput', 'loginConfirmInput'];
+  const loginInputs = ['loginIdInput', 'loginPasswordInput', 'loginNameInput', 'loginConfirmInput', 'loginSecurityAnswer'];
   if (loginInputs.includes(event.target.id) && event.key === 'Enter' && !event.isComposing) {
     event.preventDefault();
-    handleAction(state.loginMode === 'create' ? 'login-create' : 'login-signin', event.target);
+    const forgotActions = ['login-forgot-id', 'login-forgot-verify', 'login-forgot-reset'];
+    const action = state.loginMode === 'create' ? 'login-create' : (state.loginMode === 'forgot' ? (forgotActions[state.forgotStep - 1] || 'login-forgot-id') : 'login-signin');
+    handleAction(action, event.target);
   }
 });
 
 document.addEventListener('change', event => {
   const target = event.target;
+  if (target.id === 'loginQuestionSelect') { state.loginQuestion = Number(target.value) || 0; return; }
   if (target.matches('[data-timetable-id]')) {
     ensureTimetableDay();
     const slot = timetableData.find(item => item.id === target.dataset.timetableId);
