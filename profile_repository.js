@@ -13,10 +13,10 @@
   };
 
   const DEFAULT_USER = {
-    id: 'demo-user-arjun',
-    name: 'Arjun Sharma',
-    email: 'arjun.sharma@example.com',
-    phone: '+91 98765 43210',
+    id: 'local-user',
+    name: '',
+    email: '',
+    phone: '',
     profile_picture_url: '',
     updated_at: new Date().toISOString(),
   };
@@ -31,6 +31,11 @@
     _localRecord() {
       try {
         const stored = JSON.parse(global.localStorage.getItem(this.storageKey) || 'null');
+        // Migrate away the old hard-coded demo identity: the signed-in account name now wins.
+        if (stored && stored.id === 'demo-user-arjun') {
+          global.localStorage.removeItem(this.storageKey);
+          return { ...DEFAULT_USER };
+        }
         return stored && typeof stored === 'object' ? { ...DEFAULT_USER, ...stored } : { ...DEFAULT_USER };
       } catch (error) {
         return { ...DEFAULT_USER };
