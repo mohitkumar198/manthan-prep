@@ -1,0 +1,12 @@
+{
+  "table": "users",
+  "primary_key": "id",
+  "columns": {
+    "id": "authenticated user id",
+    "name": "string",
+    "email": "string",
+    "phone": "string",
+    "profile_picture_url": "string",
+    "updated_at": "timestamp"
+  }
+}

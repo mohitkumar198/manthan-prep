@@ -1,0 +1,102 @@
+[
+  {
+    "id": 1,
+    "category": "General",
+    "question": "एक गुफा के दो रखवाले, दोनों लंबे दोनों काले। बताओ क्या?",
+    "questionEn": "Two guards stand at the mouth of a cave, both long and both black. What are they?",
+    "answer": "मूंछें",
+    "answerEn": "Mustache",
+    "options": ["मूंछें", "आंखें", "कान", "बाल"],
+    "hint": "यह चेहरे पर होती है और होठों के ऊपर पाई जाती है।"
+  },
+  {
+    "id": 2,
+    "category": "Nature",
+    "question": "बिना पैर के चलती हूँ, बिना मुंह के बोलती हूँ। बताओ मैं कौन?",
+    "questionEn": "I move without feet and speak without a mouth. What am I?",
+    "answer": "नदी",
+    "answerEn": "A river",
+    "options": ["नदी", "हवा", "बादल", "सड़क"],
+    "hint": "यह पहाड़ों से निकलकर समुद्र तक जाती है।"
+  },
+  {
+    "id": 3,
+    "category": "Everyday",
+    "question": "ऐसी कौन सी चीज़ है जो पानी पीते ही मर जाती है?",
+    "questionEn": "What is the thing that dies as soon as it drinks water?",
+    "answer": "आग",
+    "answerEn": "Fire",
+    "options": ["आग", "पौधा", "मछली", "मिट्टी"],
+    "hint": "यह गर्मी देती है, लेकिन पानी से बुझ जाती है।"
+  },
+  {
+    "id": 4,
+    "category": "Wordplay",
+    "question": "जितना खींचो उतनी ही छोटी होती जाती है। बताओ क्या?",
+    "questionEn": "The more you pull it, the shorter it becomes. What is it?",
+    "answer": "सिगरेट",
+    "answerEn": "A cigarette",
+    "options": ["रस्सी", "सिगरेट", "रबर", "मोमबत्ती"],
+    "hint": "यह धीरे-धीरे जलती रहती है।"
+  },
+  {
+    "id": 5,
+    "category": "Nature",
+    "question": "आसमान में उड़ती हूँ, पर पंख नहीं है। आंखों से दिखती हूँ, पर हाथों से पकड़ नहीं सकते।",
+    "questionEn": "I fly in the sky without wings. You can see me, but you cannot hold me.",
+    "answer": "बादल",
+    "answerEn": "A cloud",
+    "options": ["बादल", "पतंग", "चिड़िया", "धुआं"],
+    "hint": "कभी सफेद, कभी काले; बारिश भी ला सकते है।"
+  },
+  {
+    "id": 6,
+    "category": "General",
+    "question": "चार पैर है, फिर भी चल नहीं सकती। पीठ है, मगर लेट नहीं सकती।",
+    "questionEn": "I have four legs but cannot walk. I have a back but cannot lie down.",
+    "answer": "कुर्सी",
+    "answerEn": "A chair",
+    "options": ["मेज़", "कुर्सी", "खाट", "घोड़ा"],
+    "hint": "आप इस पर बैठते है।"
+  },
+  {
+    "id": 7,
+    "category": "Wordplay",
+    "question": "वह क्या है जो आपके पास जितना ज्यादा होगा, आप उतना ही कम देख पाएंगे?",
+    "questionEn": "What is the thing that the more you have of it, the less you can see?",
+    "answer": "अंधेरा",
+    "answerEn": "Darkness",
+    "options": ["अंधेरा", "रोशनी", "धुआं", "चश्मा"],
+    "hint": "रोशनी की अनुपस्थिति।"
+  },
+  {
+    "id": 8,
+    "category": "General",
+    "question": "सुबह चार पैर, दोपहर दो पैर और शाम को तीन पैर — यह कौन है?",
+    "questionEn": "Who walks on four legs in the morning, two at noon and three in the evening?",
+    "answer": "मनुष्य",
+    "answerEn": "A human being",
+    "options": ["मनुष्य", "बिल्ली", "पेड़", "सांप"],
+    "hint": "जीवन के तीन चरणों के बारे में सोचिए।"
+  },
+  {
+    "id": 9,
+    "category": "Everyday",
+    "question": "मैं जितना सुखता हूं, उतना ही गीला करता हूं। बताओ मैं कौन?",
+    "questionEn": "The more I dry, the wetter I make things. What am I?",
+    "answer": "तौलिया",
+    "answerEn": "A towel",
+    "options": ["कपड़ा", "तौलिया", "साबुन", "कागज़"],
+    "hint": "नहाने के बाद इसका काम आता है।"
+  },
+  {
+    "id": 10,
+    "category": "Nature",
+    "question": "न पैर है, न पंख, फिर भी घर-घर घूमती हूँ। बताओ क्या?",
+    "questionEn": "I have neither feet nor wings, yet I travel from house to house. What am I?",
+    "answer": "हवा",
+    "answerEn": "Air",
+    "options": ["हवा", "डाक", "रोशनी", "आवाज़"],
+    "hint": "इसे महसूस कर सकते है, पकड़ नहीं सकते।"
+  }
+]

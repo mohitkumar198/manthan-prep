@@ -1,0 +1,146 @@
+[
+  {
+    "id": 1,
+    "subject": "Polity",
+    "difficulty": "Medium",
+    "question": {
+      "en": "Which Article of the Indian Constitution deals with Constitutional Amendments?",
+      "hi": "भारतीय संविधान का कौन सा अनुच्छेद संवैधानिक संशोधनों से संबंधित है?"
+    },
+    "options": {
+      "en": ["Article 352", "Article 356", "Article 360", "Article 368"],
+      "hi": ["अनुच्छेद 352", "अनुच्छेद 356", "अनुच्छेद 360", "अनुच्छेद 368"]
+    },
+    "correct_option_index": 3,
+    "explanation": {
+      "en": "Article 368 in Part XX of the Constitution deals with the powers of Parliament to amend the Constitution.",
+      "hi": "संविधान के भाग XX में अनुच्छेद 368 संविधान में संशोधन करने की संसद की शक्तियों से संबंधित है।"
+    }
+  },
+  {
+    "id": 2,
+    "subject": "History",
+    "difficulty": "Medium",
+    "question": {
+      "en": "The policy of the Doctrine of Lapse is most closely associated with which Governor-General?",
+      "hi": "हड़प नीति (Doctrine of Lapse) किस गवर्नर-जनरल से सबसे अधिक संबंधित है?"
+    },
+    "options": {
+      "en": ["Lord Wellesley", "Lord Dalhousie", "Lord Curzon", "Lord Canning"],
+      "hi": ["लॉर्ड वेलेजली", "लॉर्ड डलहौजी", "लॉर्ड कर्जन", "लॉर्ड कैनिंग"]
+    },
+    "correct_option_index": 1,
+    "explanation": {
+      "en": "Lord Dalhousie used the Doctrine of Lapse to annex princely states where the ruler had no natural male heir. The policy created political resentment before the Revolt of 1857.",
+      "hi": "लॉर्ड डलहौजी ने हड़प नीति के माध्यम से उन रियासतों का विलय किया जहाँ शासक का कोई प्राकृतिक पुत्र उत्तराधिकारी नहीं था। इस नीति ने 1857 के विद्रोह से पहले राजनीतिक असंतोष बढ़ाया।"
+    }
+  },
+  {
+    "id": 3,
+    "subject": "Geography",
+    "difficulty": "Easy",
+    "question": {
+      "en": "Which factor most directly drives the seasonal reversal of winds in the Indian monsoon system?",
+      "hi": "भारतीय मानसून प्रणाली में पवनों के मौसमी प्रत्यावर्तन को सबसे प्रत्यक्ष रूप से कौन सा कारक प्रेरित करता है?"
+    },
+    "options": {
+      "en": ["Differential heating of land and sea", "Rotation of the Moon", "Permanent high pressure over India", "Uniform heating of the Indian Ocean"],
+      "hi": ["स्थल और समुद्र का असमान ताप", "चंद्रमा का घूर्णन", "भारत के ऊपर स्थायी उच्च दबाव", "हिंद महासागर का समान ताप"]
+    },
+    "correct_option_index": 0,
+    "explanation": {
+      "en": "Differential heating creates seasonal pressure differences between the Indian landmass and surrounding seas. This pressure gradient, alongside upper-air circulation and the ITCZ shift, supports the monsoon reversal.",
+      "hi": "स्थल और समुद्र का असमान ताप भारतीय भूभाग और आसपास के समुद्रों के बीच मौसमी दबाव-अंतर पैदा करता है। यह दबाव प्रवणता, ऊपरी वायुमंडलीय परिसंचरण और ITCZ के खिसकाव के साथ मानसून के प्रत्यावर्तन में सहायक होती है।"
+    }
+  },
+  {
+    "id": 4,
+    "subject": "Economy",
+    "difficulty": "Medium",
+    "question": {
+      "en": "If the Reserve Bank of India raises the repo rate, what is the most likely immediate effect?",
+      "hi": "यदि भारतीय रिज़र्व बैंक रेपो दर बढ़ाता है, तो सबसे संभावित तात्कालिक प्रभाव क्या होगा?"
+    },
+    "options": {
+      "en": ["Borrowing by commercial banks becomes more expensive", "System liquidity increases sharply", "The rupee automatically depreciates", "Government capital expenditure rises"],
+      "hi": ["वाणिज्यिक बैंकों के लिए उधार लेना महंगा हो जाता है", "प्रणाली में तरलता तेजी से बढ़ जाती है", "रुपया स्वतः अवमूल्यित हो जाता है", "सरकारी पूंजीगत व्यय बढ़ जाता है"]
+    },
+    "correct_option_index": 0,
+    "explanation": {
+      "en": "The repo rate is the rate at which the RBI lends short-term funds to banks. A higher rate increases the cost of funds and can tighten credit conditions, helping moderate demand and inflation.",
+      "hi": "रेपो दर वह दर है जिस पर RBI बैंकों को अल्पावकालिक धन उधार देता है। दर बढ़ने से धन की लागत बढ़ती है और ऋण की स्थिति कड़ी हो सकती है, जिससे मांग और मुद्रास्फीति को नियंत्रित करने में मदद मिलती है।"
+    }
+  },
+  {
+    "id": 5,
+    "subject": "Science & Tech",
+    "difficulty": "Medium",
+    "question": {
+      "en": "Which principle is most important when using artificial intelligence in public-service delivery?",
+      "hi": "सार्वजनिक सेवा वितरण में कृत्रिम बुद्धिमत्ता का उपयोग करते समय कौन सा सिद्धांत सबसे महत्वपूर्ण है?"
+    },
+    "options": {
+      "en": ["Accountability and explainability", "Replacing every human decision", "Keeping all model decisions secret", "Optimising only for processing speed"],
+      "hi": ["जवाबदेही और व्याख्येयता", "हर मानव निर्णय को बदल देना", "सभी मॉडल निर्णयों को गुप्त रखना", "केवल प्रसंस्करण गति को अनुकूलित करना"]
+    },
+    "correct_option_index": 0,
+    "explanation": {
+      "en": "Public-sector AI affects rights, entitlements and access to services. Accountable systems with explainability, human oversight and auditability are essential for fairness and trust.",
+      "hi": "सार्वजनिक क्षेत्र की AI प्रणालियाँ अधिकारों, लाभों और सेवाओं तक पहुंच को प्रभावित करती है। निष्पक्षता और विश्वास के लिए व्याख्येयता, मानवीय निगरानी और ऑडिट योग्यता वाली जवाबदेह प्रणालियाँ आवश्यक है।"
+    }
+  },
+  {
+    "id": 6,
+    "subject": "Polity",
+    "difficulty": "Easy",
+    "question": {
+      "en": "Which body recommends the distribution of net tax proceeds between the Union and the States?",
+      "hi": "केंद्र और राज्यों के बीच शुद्ध कर-प्राप्तियों के वितरण की सिफारिश कौन सा निकाय करता है?"
+    },
+    "options": {
+      "en": ["NITI Aayog", "Finance Commission", "Public Accounts Committee", "Inter-State Council"],
+      "hi": ["नीति आयोग", "वित्त आयोग", "लोक लेखा समिति", "अंतर-राज्य परिषद"]
+    },
+    "correct_option_index": 1,
+    "explanation": {
+      "en": "Under Article 280, the Finance Commission recommends the distribution of tax revenues between the Union and States and the principles governing grants-in-aid.",
+      "hi": "अनुच्छेद 280 के अंतर्गत वित्त आयोग केंद्र और राज्यों के बीच कर राजस्व के वितरण तथा अनुदान-सहायता के सिद्धांतों की सिफारिश करता है।"
+    }
+  },
+  {
+    "id": 7,
+    "subject": "Environment",
+    "difficulty": "Medium",
+    "question": {
+      "en": "Wetlands are important to cities primarily because they provide which combination of services?",
+      "hi": "शहरों के लिए आर्द्रभूमियाँ मुख्यतः किस प्रकार की सेवाओं का संयोजन प्रदान करने के कारण महत्वपूर्ण है?"
+    },
+    "options": {
+      "en": ["Flood buffering and groundwater recharge", "Only recreational space", "Permanent drought conditions", "A replacement for all drainage networks"],
+      "hi": ["बाढ़ नियंत्रण और भूजल पुनर्भरण", "केवल मनोरंजन स्थल", "स्थायी सूखे की स्थिति", "सभी जल निकासी नेटवर्क का विकल्प"]
+    },
+    "correct_option_index": 0,
+    "explanation": {
+      "en": "Urban wetlands absorb excess water, slow runoff and support groundwater recharge. They also provide habitat, improve water quality and moderate local microclimates.",
+      "hi": "शहरी आर्द्रभूमियाँ अतिरिक्त जल को सोखती है, बहाव को धीमा करती है और भूजल पुनर्भरण में सहायता करती है। वे आवास, जल गुणवत्ता सुधार और स्थानीय सूक्ष्मजलवायु को संतुलित करने जैसी सेवाएँ भी देती है।"
+    }
+  },
+  {
+    "id": 8,
+    "subject": "Geography",
+    "difficulty": "Medium",
+    "question": {
+      "en": "The Inter-Tropical Convergence Zone is best described as a zone where which winds converge?",
+      "hi": "अंतर-उष्णकटिबंधीय अभिसरण क्षेत्र (ITCZ) को उस क्षेत्र के रूप में वर्णित किया जाता है जहाँ कौन सी पवन अभिसरित होती है?"
+    },
+    "options": {
+      "en": ["Trade winds from both hemispheres", "Polar easterlies only", "Westerlies from both poles", "Local mountain breezes"],
+      "hi": ["दोनों गोलार्धों की व्यापारिक पवने", "केवल ध्रुवीय पूर्वी पवने", "दोनों ध्रुवों से आने वाली पछुआ पवने", "स्थानीय पर्वतीय समीर"]
+    },
+    "correct_option_index": 0,
+    "explanation": {
+      "en": "The ITCZ is a near-equatorial belt where the northeast and southeast trade winds converge. Its seasonal migration is important to the onset and withdrawal of the Indian monsoon.",
+      "hi": "ITCZ भूमध्य रेखा के निकट वह पट्टी है जहाँ उत्तर-पूर्वी और दक्षिण-पूर्वी व्यापारिक पवने अभिसरित होती है। इसका मौसमी खिसकाव भारतीय मानसून के आगमन और वापसी के लिए महत्वपूर्ण है।"
+    }
+  }
+]

@@ -1,0 +1,112 @@
+[
+  {
+    "id": "morning-refresh",
+    "start": "05:00",
+    "end": "06:00",
+    "timeLabel": "05:00 AM – 06:00 AM",
+    "icon": "flame",
+    "title": "Morning Routine & Mind Refreshening",
+    "description": "Exercise, meditation and a calm start before the study day.",
+    "tag": "Mindfulness"
+  },
+  {
+    "id": "core-study-1",
+    "start": "06:00",
+    "end": "08:30",
+    "timeLabel": "06:00 AM – 08:30 AM",
+    "icon": "book",
+    "title": "Core Study Session 1",
+    "description": "High-focus GS or Optional Subject study with active recall.",
+    "tag": "Deep focus"
+  },
+  {
+    "id": "breakfast-news",
+    "start": "08:30",
+    "end": "09:30",
+    "timeLabel": "08:30 AM – 09:30 AM",
+    "icon": "calendar",
+    "title": "Healthy Breakfast & News Analysis",
+    "description": "Fuel well and connect the daily newspaper to the syllabus.",
+    "tag": "Current affairs"
+  },
+  {
+    "id": "core-study-2",
+    "start": "09:30",
+    "end": "12:30",
+    "timeLabel": "09:30 AM – 12:30 PM",
+    "icon": "pen",
+    "title": "Core Study Session 2",
+    "description": "Practice questions, answer writing and analytical note-making.",
+    "tag": "Practice"
+  },
+  {
+    "id": "lunch-nap",
+    "start": "12:30",
+    "end": "14:00",
+    "timeLabel": "12:30 PM – 02:00 PM",
+    "icon": "coffee",
+    "title": "Lunch Break & Quick Power Nap",
+    "description": "Eat mindfully, reset your energy and return refreshed.",
+    "tag": "Recharge"
+  },
+  {
+    "id": "study-session-3",
+    "start": "14:00",
+    "end": "16:30",
+    "timeLabel": "02:00 PM – 04:30 PM",
+    "icon": "spark",
+    "title": "Study Session 3",
+    "description": "Revision, Play Quiz and Paheli for active, varied recall.",
+    "tag": "Recall"
+  },
+  {
+    "id": "evening-break",
+    "start": "16:30",
+    "end": "17:30",
+    "timeLabel": "04:30 PM – 05:30 PM",
+    "icon": "coffee",
+    "title": "Evening Break & Walk",
+    "description": "Refreshment, movement and a screen-free mental reset.",
+    "tag": "Refresh"
+  },
+  {
+    "id": "mock-analysis",
+    "start": "17:30",
+    "end": "20:00",
+    "timeLabel": "05:30 PM – 08:00 PM",
+    "icon": "target",
+    "title": "Mock Tests & Weak Topic Analysis",
+    "description": "Attempt a timed test, then study the gaps it reveals.",
+    "tag": "Exam mode"
+  },
+  {
+    "id": "dinner-relax",
+    "start": "20:00",
+    "end": "21:00",
+    "timeLabel": "08:00 PM – 09:00 PM",
+    "icon": "users",
+    "title": "Dinner & Relaxing Time",
+    "description": "Slow down, eat well and protect your evening recovery.",
+    "tag": "Recovery"
+  },
+  {
+    "id": "light-revision",
+    "start": "21:00",
+    "end": "22:30",
+    "timeLabel": "09:00 PM – 10:30 PM",
+    "icon": "scroll",
+    "title": "Light Revision & Tomorrow's Plan",
+    "description": "Review the day's takeaways and set three clear priorities.",
+    "tag": "Close the loop"
+  },
+  {
+    "id": "sleep",
+    "start": "22:30",
+    "end": "23:59",
+    "timeLabel": "10:30 PM onwards",
+    "icon": "clock",
+    "title": "Sleep",
+    "description": "Protect a mandatory 7-hour sleep cycle for tomorrow's focus.",
+    "tag": "Mandatory"
+  }
+]
