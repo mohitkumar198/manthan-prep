@@ -473,6 +473,7 @@ const state = {
   loginQuestion: 0,
   loginSecurityAnswer: '',
   forgotStep: 1,
+  adminTab: 'users',
   accountId: '',
   uiLanguage: (() => { try { return localStorage.getItem('manthanUiLanguage') || 'en'; } catch (e) { return 'en'; } })(),
   languageMenuOpen: false,
@@ -556,6 +557,7 @@ const screenMeta = {
   pyq: ['Learn from the exam', 'PYQ Bank'],
   syllabus: ['Plan with clarity', 'Syllabus Tracker'],
   profile: ['Your journey', 'Profile & Analytics'],
+  admin: ['Control centre', 'Admin Panel'],
 };
 
 function ring(percent, size = '', dark = false, label = true, color = 'var(--aqua)') {
@@ -628,6 +630,7 @@ function sidebar() {
     <div class="nav-separator"></div>
     <div class="nav-label">Study tools</div>
     <nav class="nav-list">${navStudy.map(item).join('')}</nav>
+    ${isAdminId(state.accountId) ? `<div class="nav-separator"></div><div class="nav-label">Management</div><nav class="nav-list">${item(['admin', 'Admin panel', 'shield'])}</nav>` : ''}
     <div class="sidebar-spacer"></div>
     <div class="sidebar-tip"><div class="tip-icon">${icon('spark', 16)}</div><strong>One thoughtful hour</strong><p>Small, consistent sessions compound into command.</p></div>
     <div class="sidebar-user">${profileAvatarButton()}<div><div class="sidebar-user-name">${escapeHtml(accountDisplayName())}</div><div class="sidebar-user-meta">UPSC CSE · 12 day streak</div></div></div>
@@ -1542,8 +1545,100 @@ function saveCroppedPhoto() {
   image.src = state.cropSrc;
 }
 
+/* ---- Admin panel: users, content and stats (device data until server sync). ---- */
+const ADMIN_ACCOUNT_ID = 'admin_manthan';
+const ADMIN_DEFAULT_PASSWORD = 'ManthanAdmin@2026';
+function isAdminId(id) {
+  const key = normalizeLoginId(id);
+  if (!key) return false;
+  if (key === ADMIN_ACCOUNT_ID) return true;
+  const users = manthanUsers();
+  return Boolean(users[key] && users[key].isAdmin);
+}
+function ensureAdminAccount() {
+  const users = manthanUsers();
+  if (!users[ADMIN_ACCOUNT_ID]) {
+    const salt = `${Math.random().toString(36).slice(2, 10)}${Date.now().toString(36)}`;
+    users[ADMIN_ACCOUNT_ID] = { name: 'Manthan Admin', salt, hash: hashPassword(ADMIN_DEFAULT_PASSWORD, salt), secQ: securityQuestions[0], secHash: hashPassword('manthan', salt), isAdmin: true, createdAt: new Date().toISOString() };
+    saveManthanUsers(users);
+  }
+}
+function readCustomList(key) { try { const list = JSON.parse(localStorage.getItem(key) || '[]'); return Array.isArray(list) ? list : []; } catch (e) { return []; } }
+function writeCustomList(key, list) { try { localStorage.setItem(key, JSON.stringify(list)); } catch (e) { /* optional */ } }
+function loadCustomContent() {
+  readCustomList('manthanQuizCustom').forEach(item => { if (item && item.id !== undefined && !quizDatabase.some(question => String(question.id) === String(item.id))) quizDatabase.push(item); });
+  readCustomList('manthanPaheliCustom').forEach(item => { if (item && item.id !== undefined && !paheliData.some(entry => String(entry.id) === String(item.id))) paheliData.push(item); });
+  readCustomList('manthanTimetableCustom').forEach(item => { if (item && item.id !== undefined && !timetableData.some(slot => String(slot.id) === String(item.id))) timetableData.push(item); });
+}
+try { loadCustomContent(); ensureAdminAccount(); } catch (e) { /* optional */ }
+
+function renderAdminUsers() {
+  const users = manthanUsers();
+  const rows = Object.keys(users).map(id => {
+    const user = users[id];
+    const self = id === normalizeLoginId(state.accountId);
+    return `<div class="admin-user-row"><div class="admin-user-main"><strong>${escapeHtml(user.name || id)}</strong><small>@${escapeHtml(id)} · joined ${new Date(user.createdAt || Date.now()).toLocaleDateString('en-IN')}</small></div><div class="admin-user-badges">${user.isAdmin ? '<span class="badge badge-gold">Admin</span>' : ''}${user.blocked ? '<span class="badge badge-coral">Blocked</span>' : ''}${self ? '<span class="badge badge-aqua">You</span>' : ''}</div><div class="admin-user-actions"><button class="btn btn-soft btn-sm" data-action="admin-toggle-admin" data-id="${escapeHtml(id)}" ${self ? 'disabled' : ''}>${user.isAdmin ? 'Remove admin' : 'Make admin'}</button><button class="btn btn-soft btn-sm" data-action="admin-toggle-block" data-id="${escapeHtml(id)}" ${self || user.isAdmin ? 'disabled' : ''}>${user.blocked ? 'Unblock' : 'Block'}</button><button class="btn btn-soft btn-sm admin-danger" data-action="admin-delete-user" data-id="${escapeHtml(id)}" ${self || user.isAdmin ? 'disabled' : ''}>Delete</button></div></div>`;
+  }).join('');
+  return `<section class="card admin-card"><div class="section-heading"><div><h2>Registered users</h2><p>${Object.keys(users).length} accounts iss browser me</p></div><span class="badge badge-aqua">${icon('users', 13)} Users</span></div>${rows}</section>`;
+}
+
+function renderAdminContent() {
+  const subjects = [...new Set(quizDatabase.map(question => question.subject))];
+  const customQuiz = readCustomList('manthanQuizCustom');
+  const customPaheli = readCustomList('manthanPaheliCustom');
+  const customSlots = readCustomList('manthanTimetableCustom');
+  const optionInputs = prefix => ['A', 'B', 'C', 'D'].map(letter => `<div><label class="form-label" for="${prefix}${letter}">Option ${letter}</label><input class="text-input" id="${prefix}${letter}" placeholder="Option ${letter}"></div>`).join('');
+  const customList = (items, label, action, textOf) => items.length ? `<div class="admin-custom-list"><div class="eyebrow">${label} (${items.length})</div>${items.map(item => `<div class="admin-custom-row"><strong>${escapeHtml(textOf(item))}</strong><button class="btn btn-soft btn-sm admin-danger" data-action="${action}" data-id="${escapeHtml(String(item.id))}">Delete</button></div>`).join('')}</div>` : '';
+  return `
+  <section class="card admin-card"><div class="section-heading"><div><h2>Add quiz question</h2><p>Bilingual — Hindi fields khali chhodoge to English use hoga.</p></div><span class="badge badge-aqua">${quizDatabase.length} in bank</span></div>
+    <div class="admin-form-grid"><div><label class="form-label" for="adminQuizSubject">Subject</label><select class="text-input" id="adminQuizSubject">${subjects.map(subject => `<option value="${escapeHtml(subject)}">${escapeHtml(subject)}</option>`).join('')}</select></div><div><label class="form-label" for="adminQuizDifficulty">Difficulty</label><select class="text-input" id="adminQuizDifficulty"><option>Easy</option><option selected>Medium</option><option>Hard</option></select></div></div>
+    <label class="form-label" for="adminQuizQEn">Question (English)</label><input class="text-input" id="adminQuizQEn" placeholder="e.g. Who founded the Maurya Empire?">
+    <label class="form-label" for="adminQuizQHi">Question (Hindi)</label><input class="text-input" id="adminQuizQHi" placeholder="हिंदी प्रश्न (optional)">
+    <div class="admin-form-grid">${optionInputs('adminQuizOptEn')}</div>
+    <div class="admin-form-grid">${optionInputs('adminQuizOptHi')}</div>
+    <label class="form-label" for="adminQuizCorrect">Correct option</label><select class="text-input" id="adminQuizCorrect"><option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option></select>
+    <label class="form-label" for="adminQuizExpEn">Explanation (English)</label><input class="text-input" id="adminQuizExpEn" placeholder="Why this answer is correct">
+    <label class="form-label" for="adminQuizExpHi">Explanation (Hindi)</label><input class="text-input" id="adminQuizExpHi" placeholder="व्याख्या (optional)">
+    <button class="btn btn-primary" data-action="admin-add-quiz">${icon('plus', 15)} Add question</button>
+    ${customList(customQuiz, 'Custom questions', 'admin-delete-quiz', item => item.question && item.question.en || '')}
+  </section>
+  <section class="card admin-card"><div class="section-heading"><div><h2>Add paheli</h2><p>Naya bujhaaddo — Hindi me sawaal aur jawaab.</p></div><span class="badge badge-gold">${paheliData.length} riddles</span></div>
+    <div class="admin-form-grid"><div><label class="form-label" for="adminPaheliCategory">Category</label><input class="text-input" id="adminPaheliCategory" placeholder="e.g. Logic"></div><div><label class="form-label" for="adminPaheliHint">Hint</label><input class="text-input" id="adminPaheliHint" placeholder="Chhota sa ishara"></div></div>
+    <label class="form-label" for="adminPaheliQuestion">Question (Hindi)</label><input class="text-input" id="adminPaheliQuestion" placeholder="पहेली का सवाल">
+    <label class="form-label" for="adminPaheliQuestionEn">Question (English)</label><input class="text-input" id="adminPaheliQuestionEn" placeholder="English translation (optional)">
+    <div class="admin-form-grid">${optionInputs('adminPaheliOpt')}</div>
+    <div class="admin-form-grid"><div><label class="form-label" for="adminPaheliAnswer">Correct answer (kisi ek option se exactly match ho)</label><input class="text-input" id="adminPaheliAnswer" placeholder="सही उत्तर"></div><div><label class="form-label" for="adminPaheliAnswerEn">Answer (English)</label><input class="text-input" id="adminPaheliAnswerEn" placeholder="English (optional)"></div></div>
+    <button class="btn btn-primary" data-action="admin-add-paheli">${icon('plus', 15)} Add paheli</button>
+    ${customList(customPaheli, 'Custom paheli', 'admin-delete-paheli', item => item.question || '')}
+  </section>
+  <section class="card admin-card"><div class="section-heading"><div><h2>Add timetable slot</h2><p>Daily schedule me naya block jodo.</p></div><span class="badge badge-slate">${timetableData.length} slots</span></div>
+    <div class="admin-form-grid"><div><label class="form-label" for="adminSlotTime">Time label</label><input class="text-input" id="adminSlotTime" placeholder="e.g. 9:00 PM - 10:00 PM"></div><div><label class="form-label" for="adminSlotTag">Tag</label><input class="text-input" id="adminSlotTag" placeholder="e.g. Study"></div></div>
+    <label class="form-label" for="adminSlotTitle">Title</label><input class="text-input" id="adminSlotTitle" placeholder="e.g. Evening revision">
+    <label class="form-label" for="adminSlotDesc">Description</label><input class="text-input" id="adminSlotDesc" placeholder="Iss block me kya karna hai">
+    <button class="btn btn-primary" data-action="admin-add-slot">${icon('plus', 15)} Add slot</button>
+    ${customList(customSlots, 'Custom slots', 'admin-delete-slot', item => item.title || '')}
+  </section>`;
+}
+
+function renderAdminStats() {
+  const users = manthanUsers();
+  const ids = Object.keys(users);
+  const admins = ids.filter(id => users[id].isAdmin).length;
+  const blocked = ids.filter(id => users[id].blocked).length;
+  const attempts = Array.isArray(state.quizHistory) ? state.quizHistory : [];
+  const avgAccuracy = attempts.length ? Math.round(attempts.reduce((sum, attempt) => sum + (Number(attempt.accuracy) || 0), 0) / attempts.length) : 0;
+  const stat = (label, value, note) => `<div class="admin-stat"><strong>${value}</strong><span>${label}</span><small>${note}</small></div>`;
+  return `<section class="card admin-card"><div class="section-heading"><div><h2>App stats</h2><p>Iss browser ke accounts aur content ka summary — server connect hone ke baad yahan sab users ka combined data dikhega.</p></div></div><div class="admin-stats-grid">${stat('Total users', ids.length, 'registered accounts')}${stat('Admins', admins, 'admin rights')}${stat('Blocked', blocked, 'sign-in disabled')}${stat('Quiz questions', quizDatabase.length, `${readCustomList('manthanQuizCustom').length} custom`)}${stat('Paheli riddles', paheliData.length, `${readCustomList('manthanPaheliCustom').length} custom`)}${stat('Timetable slots', timetableData.length, `${readCustomList('manthanTimetableCustom').length} custom`)}${stat('Quiz attempts', attempts.length, 'this user, this browser')}${stat('Avg accuracy', attempts.length ? `${avgAccuracy}%` : '—', 'current user')}</div></section>`;
+}
+
+function renderAdmin() {
+  const tab = state.adminTab === 'content' || state.adminTab === 'stats' ? state.adminTab : 'users';
+  const tabButton = (id, label) => `<button class="login-tab ${tab === id ? 'active' : ''}" role="tab" data-action="admin-tab" data-tab="${id}">${label}</button>`;
+  return `<div class="admin-screen"><div class="admin-header"><div><div class="eyebrow">Control centre</div><h2>Admin Panel</h2><p>Users, content aur stats — sab ek jagah se manage karo.</p></div><span class="badge badge-gold">${icon('shield', 12)} ${escapeHtml(accountDisplayName())}</span></div><div class="login-tabs admin-tabs" role="tablist">${tabButton('users', 'Users')}${tabButton('content', 'Content')}${tabButton('stats', 'Stats')}</div>${tab === 'users' ? renderAdminUsers() : tab === 'content' ? renderAdminContent() : renderAdminStats()}</div>`;
+}
+
 function renderScreen() {
-  const views = { home: renderHome, timeTable: renderTimeTable, paheli: renderPaheli, subjects: renderSubjects, subjectDetail: renderSubjectDetail, practice: renderPractice, currentAffairs: renderCurrentAffairs, tests: renderTests, twoDeckQuiz: renderTwoDeckQuiz, mock: renderMock, groups: renderGroups, groupDetail: renderGroupDetail, battle: renderBattle, revision: renderRevision, answerWriting: renderAnswerWriting, pyq: renderPyq, syllabus: renderSyllabus, profile: renderProfile };
+  const views = { home: renderHome, timeTable: renderTimeTable, paheli: renderPaheli, subjects: renderSubjects, subjectDetail: renderSubjectDetail, practice: renderPractice, currentAffairs: renderCurrentAffairs, tests: renderTests, twoDeckQuiz: renderTwoDeckQuiz, mock: renderMock, groups: renderGroups, groupDetail: renderGroupDetail, battle: renderBattle, revision: renderRevision, answerWriting: renderAnswerWriting, pyq: renderPyq, syllabus: renderSyllabus, profile: renderProfile, admin: () => (isAdminId(state.accountId) ? renderAdmin() : renderHome()) };
   return (views[state.screen] || renderHome)();
 }
 
@@ -1893,6 +1988,7 @@ function handleAction(action, el) {
       const user = manthanUsers()[id];
       if (!id) { state.loginError = 'Please enter your User ID.'; render(); return; }
       if (!user) { state.loginError = 'No account found with this User ID. Create one first.'; render(); return; }
+      if (user.blocked) { state.loginError = 'This account has been blocked by the admin.'; render(); return; }
       if (user.hash !== hashPassword(password, user.salt)) { state.loginError = 'Incorrect password for this User ID.'; render(); return; }
       openAccount(id, user.name);
       break;
@@ -1961,6 +2057,124 @@ function handleAction(action, el) {
       state.loginError = '';
       render();
       toast('Password reset! You can sign in with your new password.');
+      break;
+    }
+    case 'admin-tab': state.adminTab = data.tab || 'users'; render(); break;
+    case 'admin-toggle-admin': {
+      const users = manthanUsers();
+      const id = normalizeLoginId(data.id);
+      const user = users[id];
+      if (!user || id === normalizeLoginId(state.accountId)) break;
+      user.isAdmin = !user.isAdmin;
+      saveManthanUsers(users);
+      toast(user.isAdmin ? `${user.name} is now an admin.` : `Admin rights removed from ${user.name}.`);
+      render();
+      break;
+    }
+    case 'admin-toggle-block': {
+      const users = manthanUsers();
+      const id = normalizeLoginId(data.id);
+      const user = users[id];
+      if (!user || user.isAdmin || id === normalizeLoginId(state.accountId)) break;
+      user.blocked = !user.blocked;
+      saveManthanUsers(users);
+      toast(user.blocked ? `${user.name} blocked — ab sign in nahi kar sakte.` : `${user.name} unblocked.`);
+      render();
+      break;
+    }
+    case 'admin-delete-user': {
+      const users = manthanUsers();
+      const id = normalizeLoginId(data.id);
+      if (!users[id] || users[id].isAdmin || id === normalizeLoginId(state.accountId)) break;
+      const name = users[id].name || id;
+      delete users[id];
+      saveManthanUsers(users);
+      toast(`Account ${name} deleted.`);
+      render();
+      break;
+    }
+    case 'admin-add-quiz': {
+      const val = fid => (document.getElementById(fid)?.value ?? '').trim();
+      const subject = val('adminQuizSubject');
+      const qEn = val('adminQuizQEn');
+      const qHi = val('adminQuizQHi');
+      const optsEn = ['A', 'B', 'C', 'D'].map(letter => val('adminQuizOptEn' + letter));
+      const optsHi = ['A', 'B', 'C', 'D'].map(letter => val('adminQuizOptHi' + letter));
+      const correct = Number(val('adminQuizCorrect')) || 0;
+      const expEn = val('adminQuizExpEn');
+      const expHi = val('adminQuizExpHi');
+      if (!subject || !qEn || optsEn.some(option => !option)) { toast('Subject, English question aur chaaron English options zaroori hain.'); break; }
+      const item = {
+        id: `cq-${Date.now()}`, subject, difficulty: val('adminQuizDifficulty') || 'Medium',
+        question: { en: qEn, hi: qHi || qEn },
+        options: { en: optsEn, hi: optsHi.map((option, index) => option || optsEn[index]) },
+        correct_option_index: correct,
+        explanation: { en: expEn || 'Explanation will be added by the admin soon.', hi: expHi || expEn || 'व्याख्या जल्द जोड़ी जाएगी।' },
+        custom: true,
+      };
+      quizDatabase.push(item);
+      const list = readCustomList('manthanQuizCustom');
+      list.push(item);
+      writeCustomList('manthanQuizCustom', list);
+      toast('Quiz question added.');
+      render();
+      break;
+    }
+    case 'admin-delete-quiz': {
+      const id = String(data.id);
+      const index = quizDatabase.findIndex(item => String(item.id) === id);
+      if (index >= 0) quizDatabase.splice(index, 1);
+      writeCustomList('manthanQuizCustom', readCustomList('manthanQuizCustom').filter(item => String(item.id) !== id));
+      toast('Question removed.');
+      render();
+      break;
+    }
+    case 'admin-add-paheli': {
+      const val = fid => (document.getElementById(fid)?.value ?? '').trim();
+      const question = val('adminPaheliQuestion');
+      const answer = val('adminPaheliAnswer');
+      const options = ['A', 'B', 'C', 'D'].map(letter => val('adminPaheliOpt' + letter));
+      if (!question || !answer || options.some(option => !option)) { toast('Hindi sawaal, sahi jawaab aur chaaron options zaroori hain.'); break; }
+      if (!options.includes(answer)) { toast('Sahi jawaab chaaron options me se ek se exactly match hona chahiye.'); break; }
+      const item = { id: `cp-${Date.now()}`, category: val('adminPaheliCategory') || 'General', question, questionEn: val('adminPaheliQuestionEn') || question, answer, answerEn: val('adminPaheliAnswerEn') || answer, options, hint: val('adminPaheliHint') || 'Sochke batao!' };
+      paheliData.push(item);
+      const list = readCustomList('manthanPaheliCustom');
+      list.push(item);
+      writeCustomList('manthanPaheliCustom', list);
+      toast('Paheli added.');
+      render();
+      break;
+    }
+    case 'admin-delete-paheli': {
+      const id = String(data.id);
+      const index = paheliData.findIndex(item => String(item.id) === id);
+      if (index >= 0) paheliData.splice(index, 1);
+      writeCustomList('manthanPaheliCustom', readCustomList('manthanPaheliCustom').filter(item => String(item.id) !== id));
+      toast('Paheli removed.');
+      render();
+      break;
+    }
+    case 'admin-add-slot': {
+      const val = fid => (document.getElementById(fid)?.value ?? '').trim();
+      const timeLabel = val('adminSlotTime');
+      const title = val('adminSlotTitle');
+      if (!timeLabel || !title) { toast('Time label aur title zaroori hai.'); break; }
+      const item = { id: `ct-${Date.now()}`, start: '00:00', end: '00:00', timeLabel, icon: 'spark', title, description: val('adminSlotDesc') || title, tag: val('adminSlotTag') || 'Study' };
+      timetableData.push(item);
+      const list = readCustomList('manthanTimetableCustom');
+      list.push(item);
+      writeCustomList('manthanTimetableCustom', list);
+      toast('Timetable slot added.');
+      render();
+      break;
+    }
+    case 'admin-delete-slot': {
+      const id = String(data.id);
+      const index = timetableData.findIndex(item => String(item.id) === id);
+      if (index >= 0) timetableData.splice(index, 1);
+      writeCustomList('manthanTimetableCustom', readCustomList('manthanTimetableCustom').filter(item => String(item.id) !== id));
+      toast('Slot removed.');
+      render();
       break;
     }
     case 'select-exam': state.setupExam = data.exam; render(); break;
@@ -2080,7 +2294,7 @@ if (typeof document.addEventListener === 'function') {
   } else {
     endSession();
     state.screen = 'login';
-    state.loginMode = Object.keys(users).length ? 'signin' : 'create';
+    state.loginMode = Object.keys(users).filter(id => id !== ADMIN_ACCOUNT_ID).length ? 'signin' : 'create';
   }
 })();
 
