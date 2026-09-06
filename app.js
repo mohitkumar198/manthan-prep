@@ -1620,7 +1620,8 @@ async function initCloudSync() {
     if (contentChanged) loadCustomContent();
     await cloudSet('/content', { quiz: readCustomList('manthanQuizCustom'), paheli: readCustomList('manthanPaheliCustom'), timetable: readCustomList('manthanTimetableCustom') });
     manthanCloud.online = true;
-    if (changed || contentChanged) render();
+    toast('Server connected — data sync chalu hai.');
+    if (state.screen !== 'login') render();
   } catch (e) {
     manthanCloud.online = false;
   }

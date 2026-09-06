@@ -1,5 +1,5 @@
 /* Manthan Prep service worker — app shell cache for install + offline use. */
-const CACHE = 'manthan-v1';
+const CACHE = 'manthan-v2';
 const ASSETS = [
   './',
   './index.html',
