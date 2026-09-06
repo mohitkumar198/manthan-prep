@@ -469,6 +469,8 @@ const state = {
   loginConfirm: '',
   loginError: '',
   accountId: '',
+  uiLanguage: (() => { try { return localStorage.getItem('manthanUiLanguage') || 'en'; } catch (e) { return 'en'; } })(),
+  languageMenuOpen: false,
   phone: '',
   otp: '',
   setupExam: 'UPSC CSE',
@@ -624,12 +626,75 @@ function sidebar() {
   </aside>`;
 }
 
+/* ---- Indian languages menu: click the globe to pick any Indian language. ---- */
+const indianLanguages = [
+  { code: 'en', native: 'English', name: 'English' },
+  { code: 'hi', native: 'हिन्दी', name: 'Hindi' },
+  { code: 'as', native: 'অসমীয়া', name: 'Assamese' },
+  { code: 'bn', native: 'বাংলা', name: 'Bengali' },
+  { code: 'brx', native: 'बड़ो', name: 'Bodo' },
+  { code: 'doi', native: 'डोगरी', name: 'Dogri' },
+  { code: 'gu', native: 'ગુજરાતી', name: 'Gujarati' },
+  { code: 'kn', native: 'ಕನ್ನಡ', name: 'Kannada' },
+  { code: 'ks', native: 'कॉशुर', name: 'Kashmiri' },
+  { code: 'kok', native: 'कोंकणी', name: 'Konkani' },
+  { code: 'mai', native: 'मैथिली', name: 'Maithili' },
+  { code: 'ml', native: 'മലയാളം', name: 'Malayalam' },
+  { code: 'mni', native: 'মেইতেই', name: 'Manipuri' },
+  { code: 'mr', native: 'मराठी', name: 'Marathi' },
+  { code: 'ne', native: 'नेपाली', name: 'Nepali' },
+  { code: 'or', native: 'ଓଡ଼ିଆ', name: 'Odia' },
+  { code: 'pa', native: 'ਪੰਜਾਬੀ', name: 'Punjabi' },
+  { code: 'sa', native: 'संस्कृतम्', name: 'Sanskrit' },
+  { code: 'sat', native: 'ᱥᱱᱛᱟᱲᱤ', name: 'Santali' },
+  { code: 'sd', native: 'سنڌي', name: 'Sindhi' },
+  { code: 'ta', native: 'தமிழ்', name: 'Tamil' },
+  { code: 'te', native: 'తెలుగు', name: 'Telugu' },
+  { code: 'ur', native: 'اردو', name: 'Urdu' },
+];
+function currentLanguage() { return indianLanguages.find(item => item.code === state.uiLanguage) || indianLanguages[0]; }
+function setTranslateCookie(code) {
+  const value = code === 'en' ? '/en/en' : `/en/${code}`;
+  try {
+    document.cookie = `googtrans=${value}; path=/`;
+    document.cookie = `googtrans=${value}; path=/; domain=${window.location.hostname}`;
+  } catch (e) { /* translation is optional */ }
+}
+function ensureTranslateEngine() {
+  if (state.uiLanguage === 'en') return;
+  if (!document.getElementById('google_translate_element')) {
+    const holder = document.createElement('div');
+    holder.id = 'google_translate_element';
+    holder.className = 'translate-holder';
+    document.body.appendChild(holder);
+  }
+  window.googleTranslateElementInit = function googleTranslateElementInit() {
+    if (!window.google || !window.google.translate) return;
+    try {
+      new window.google.translate.TranslateElement({ pageLanguage: 'en', autoDisplay: false, includedLanguages: indianLanguages.map(item => item.code).join(',') }, 'google_translate_element');
+    } catch (e) { /* translation is optional */ }
+  };
+  if (window.google && window.google.translate) { window.googleTranslateElementInit(); return; }
+  if (!document.getElementById('gtEngineScript')) {
+    const script = document.createElement('script');
+    script.id = 'gtEngineScript';
+    script.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+    script.onerror = () => toast('Translation engine internet se load nahi ho saka. Hindi aur English offline bhi chalte hain.', 'error');
+    document.head.appendChild(script);
+  }
+}
+function languageSheet() {
+  if (!state.languageMenuOpen) return '';
+  const active = currentLanguage().code;
+  return `<div class="modal-backdrop" data-action="close-language-menu"><section class="lang-sheet" role="dialog" aria-modal="true" aria-labelledby="langSheetTitle"><div class="modal-header"><div><div class="eyebrow">अपनी भाषा चुनें · Choose your language</div><h2 id="langSheetTitle">भारतीय भाषाएँ · Indian Languages</h2></div><button class="icon-btn" data-action="close-language-menu" aria-label="Close language menu">${icon('close', 16)}</button></div><div class="lang-grid">${indianLanguages.map(item => `<button class="lang-option ${item.code === active ? 'active' : ''}" data-action="select-ui-language" data-lang="${item.code}"><strong>${item.native}</strong><small>${item.name}</small>${item.code === active ? icon('check', 15) : ''}</button>`).join('')}</div><p class="lang-note">${icon('globe', 13)} Hindi aur English app me built-in hain. Baaki bhashaon ke liye translation engine live site pe internet se chalta hai — page refresh karne par bhi apply rehta hai.</p></section></div>`;
+}
+
 function topbar() {
   const meta = screenMeta[state.screen] || screenMeta.home;
   const title = state.screen === 'home' ? homeGreetingText() : state.screen === 'subjectDetail' ? `${subjectById(state.selectedSubject).name}` : state.screen === 'groupDetail' ? 'Civils Circle' : meta[1];
   return `<header class="topbar">
     <div class="topbar-left"><div class="mobile-brand"><span class="brand-mark">M</span><span class="brand-name">Manthan</span></div><div><div class="topbar-kicker">${meta[0]}</div><h1 class="topbar-title">${title}</h1></div></div>
-    <div class="topbar-right"><span class="date-chip">Tuesday, 25 August 2026</span><button class="icon-btn" data-action="search" aria-label="Search">${icon('search', 17)}</button><button class="icon-btn" data-action="notifications" aria-label="Notifications">${icon('bell', 17)}<span class="notification-dot"></span></button>${profileAvatarButton()}</div>
+    <div class="topbar-right"><button class="lang-btn" data-action="open-language-menu" aria-label="Choose language" aria-haspopup="dialog">${icon('globe', 15)}<span>${currentLanguage().native}</span></button><span class="date-chip">Tuesday, 25 August 2026</span><button class="icon-btn" data-action="search" aria-label="Search">${icon('search', 17)}</button><button class="icon-btn" data-action="notifications" aria-label="Notifications">${icon('bell', 17)}<span class="notification-dot"></span></button>${profileAvatarButton()}</div>
   </header>`;
 }
 
@@ -1322,7 +1387,7 @@ function loginScreen() {
   let panel = '';
   if (!isCreate) panel = `<h2>Welcome back.</h2><p>Sign in with your User ID and password to open your account.</p><label class="form-label" for="loginIdInput">User ID</label><input class="text-input" id="loginIdInput" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="e.g. arjun_2026" value="${escapeHtml(state.loginId)}"><label class="form-label" for="loginPasswordInput">Password</label><input class="text-input" id="loginPasswordInput" type="password" autocomplete="current-password" placeholder="Your password" value="${escapeHtml(state.loginPassword)}">${error}<button class="btn btn-primary" data-action="login-signin">Sign in ${icon('arrowRight', 15)}</button><div class="otp-note">${icon('lock', 13)} <strong>New to Manthan Prep?</strong> <button class="text-link" data-action="login-mode" data-mode="create">Create your ID &amp; password</button> — it takes 20 seconds.</div>`;
   else panel = `<h2>Create your account.</h2><p>Choose a User ID and password — only you can open this account.</p><label class="form-label" for="loginNameInput">Full name</label><input class="text-input" id="loginNameInput" autocomplete="name" placeholder="e.g. Arjun Sharma" value="${escapeHtml(state.loginName)}"><label class="form-label" for="loginIdInput">User ID</label><input class="text-input" id="loginIdInput" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="Letters, numbers, dot, dash" value="${escapeHtml(state.loginId)}"><label class="form-label" for="loginPasswordInput">Password</label><input class="text-input" id="loginPasswordInput" type="password" autocomplete="new-password" placeholder="At least 4 characters" value="${escapeHtml(state.loginPassword)}"><label class="form-label" for="loginConfirmInput">Confirm password</label><input class="text-input" id="loginConfirmInput" type="password" autocomplete="new-password" placeholder="Repeat the password" value="${escapeHtml(state.loginConfirm)}">${error}<button class="btn btn-primary" data-action="login-create">Create account &amp; sign in ${icon('arrowRight', 15)}</button><div class="otp-note">${icon('user', 13)} Already have an ID? <button class="text-link" data-action="login-mode" data-mode="signin">Sign in</button></div>`;
-  return `<div class="login-screen"><section class="login-visual"><div class="brand"><span class="brand-mark">M</span><div><div class="brand-name">Manthan Prep</div><div class="brand-sub">Analytical learning</div></div></div><div class="login-quote"><div class="eyebrow">For the serious aspirant</div><h1>Think clearly.<br><em>Prepare deeply.</em></h1><p>A calm, analytical workspace for the long road to public service – concepts, current affairs, practice and accountability in one place.</p></div><div class="login-feature-row"><div class="login-feature"><strong>13 study surfaces</strong>From syllabus to answer writing</div><div class="login-feature"><strong>Detailed explanations</strong>Learn beyond right or wrong</div><div class="login-feature"><strong>Peer accountability</strong>Progress together</div></div></section><section class="login-panel"><div class="login-box"><div class="brand"><span class="brand-mark">M</span><div><div class="brand-name">Manthan Prep</div><div class="brand-sub">Analytical learning</div></div></div>${tabs}${panel}<p style="font-size:10px;color:#a0adbb;margin-top:28px;text-align:center">By continuing, you agree to Manthan Prep’s terms and privacy policy.</p></div></section></div>`;
+  return `<div class="login-screen"><button class="lang-btn login-lang" data-action="open-language-menu" aria-label="Choose language">${icon('globe', 15)}<span>${currentLanguage().native}</span></button><section class="login-visual"><div class="brand"><span class="brand-mark">M</span><div><div class="brand-name">Manthan Prep</div><div class="brand-sub">Analytical learning</div></div></div><div class="login-quote"><div class="eyebrow">For the serious aspirant</div><h1>Think clearly.<br><em>Prepare deeply.</em></h1><p>A calm, analytical workspace for the long road to public service – concepts, current affairs, practice and accountability in one place.</p></div><div class="login-feature-row"><div class="login-feature"><strong>13 study surfaces</strong>From syllabus to answer writing</div><div class="login-feature"><strong>Detailed explanations</strong>Learn beyond right or wrong</div><div class="login-feature"><strong>Peer accountability</strong>Progress together</div></div></section><section class="login-panel"><div class="login-box"><div class="brand"><span class="brand-mark">M</span><div><div class="brand-name">Manthan Prep</div><div class="brand-sub">Analytical learning</div></div></div>${tabs}${panel}<p style="font-size:10px;color:#a0adbb;margin-top:28px;text-align:center">By continuing, you agree to Manthan Prep’s terms and privacy policy.</p></div></section></div>`;
 }
 
 function renderPhotoLayer() {
@@ -1498,6 +1563,7 @@ function render() {
   state.pendingPageTransition = false;
   app.innerHTML = state.screen === 'login' ? loginScreen() : renderApp();
   if (state.screen !== 'login') { app.insertAdjacentHTML('beforeend', '<input id="profileGalleryPicker" class="file-picker" type="file" accept="image/*" aria-label="Choose profile picture from gallery">'); if (state.photoModal) app.insertAdjacentHTML('beforeend', renderPhotoLayer()); }
+  app.insertAdjacentHTML('beforeend', languageSheet());
   const page = app.querySelector?.('.page');
   if (shouldTransition && page) page.classList.add(`page-transition-${state.navigationDirection}`);
   if (state.screen === 'home') {
@@ -1743,6 +1809,23 @@ function handleAction(action, el) {
     case 'close-profile-editor': closeProfileEditor(); break;
     case 'signout': endSession(); state.accountId = ''; state.screen = 'login'; state.loginMode = 'signin'; state.loginError = ''; state.loginPassword = ''; state.loginConfirm = ''; state.photoModal = null; state.profileLoaded = false; state.profileLoading = false; state.profileRefreshInFlight = false; state.profileRecord = null; state.profileEditOpen = false; render(); toast('Signed out. See you at the next session.'); break;
     case 'login-mode': state.loginMode = data.mode === 'create' ? 'create' : 'signin'; state.loginError = ''; render(); break;
+    case 'open-language-menu': state.languageMenuOpen = true; render(); break;
+    case 'close-language-menu': state.languageMenuOpen = false; render(); break;
+    case 'select-ui-language': {
+      const code = indianLanguages.some(item => item.code === data.lang) ? data.lang : 'en';
+      state.uiLanguage = code;
+      try { localStorage.setItem('manthanUiLanguage', code); } catch (e) { /* optional */ }
+      setTranslateCookie(code);
+      state.languageMenuOpen = false;
+      render();
+      const lang = currentLanguage();
+      if (code === 'en') toast('Language set to English.');
+      else {
+        ensureTranslateEngine();
+        toast(`भाषा चुनी गई: ${lang.native} (${lang.name})`);
+      }
+      break;
+    }
     case 'login-signin': {
       const id = normalizeLoginId(document.getElementById('loginIdInput')?.value ?? state.loginId);
       const password = document.getElementById('loginPasswordInput')?.value ?? state.loginPassword;
@@ -1879,5 +1962,8 @@ if (typeof document.addEventListener === 'function') {
     state.loginMode = Object.keys(users).length ? 'signin' : 'create';
   }
 })();
+
+// Re-apply the saved Indian language on every visit (live site translates via the engine).
+if (state.uiLanguage !== 'en') ensureTranslateEngine();
 
 render();
