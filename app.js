@@ -1423,11 +1423,17 @@ function loginScreen() {
   const isCreate = state.loginMode === 'create';
   const tabs = `<div class="login-tabs" role="tablist" aria-label="Authentication"><button class="login-tab ${isCreate ? '' : 'active'}" role="tab" data-action="login-mode" data-mode="signin">Sign in</button><button class="login-tab ${isCreate ? 'active' : ''}" role="tab" data-action="login-mode" data-mode="create">Create account</button></div>`;
   const error = state.loginError ? `<div class="login-error" role="alert">${icon('info', 13)}<span>${escapeHtml(state.loginError)}</span></div>` : '';
+  let installHint = '';
+  try {
+    if (window.__manthanInstallPrompt && localStorage.getItem('manthanInstallHintDismissed') !== '1') {
+      installHint = `<div class="install-hint">${icon('home', 13)}<span><strong>Isse app ki tarah install karein</strong> — home screen pe icon, full screen, offline support.</span><button class="btn btn-soft btn-sm" data-action="install-app">Install app</button></div>`;
+    }
+  } catch (e) { /* optional */ }
   let panel = '';
   if (state.loginMode === 'signin') panel = `<h2>Welcome back.</h2><p>Sign in with your User ID and password to open your account.</p><label class="form-label" for="loginIdInput">User ID</label><input class="text-input" id="loginIdInput" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="e.g. priya_2026" value="${escapeHtml(state.loginId)}"><label class="form-label" for="loginPasswordInput">Password</label><input class="text-input" id="loginPasswordInput" type="password" autocomplete="current-password" placeholder="Your password" value="${escapeHtml(state.loginPassword)}"><div class="login-forgot-row"><button class="text-link" data-action="login-mode" data-mode="forgot">${icon('lock', 12)} Forgot password?</button></div>${error}<button class="btn btn-primary" data-action="login-signin">Sign in ${icon('arrowRight', 15)}</button><div class="otp-note">${icon('lock', 13)} <strong>New to Manthan Prep?</strong> <button class="text-link" data-action="login-mode" data-mode="create">Create your ID &amp; password</button> — it takes 20 seconds.</div>`;
   else if (isCreate) panel = `<h2>Create your account.</h2><p>Choose a User ID and password — only you can open this account.</p><label class="form-label" for="loginNameInput">Full name</label><input class="text-input" id="loginNameInput" autocomplete="name" placeholder="Apna poora naam" value="${escapeHtml(state.loginName)}"><label class="form-label" for="loginIdInput">User ID</label><input class="text-input" id="loginIdInput" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="Letters, numbers, dot, dash" value="${escapeHtml(state.loginId)}"><label class="form-label" for="loginPasswordInput">Password</label><input class="text-input" id="loginPasswordInput" type="password" autocomplete="new-password" placeholder="At least 4 characters" value="${escapeHtml(state.loginPassword)}"><label class="form-label" for="loginConfirmInput">Confirm password</label><input class="text-input" id="loginConfirmInput" type="password" autocomplete="new-password" placeholder="Repeat the password" value="${escapeHtml(state.loginConfirm)}"><label class="form-label" for="loginQuestionSelect">Security question (password recovery)</label><select id="loginQuestionSelect" class="text-input login-select">${securityQuestions.map((q, i) => `<option value="${i}" ${state.loginQuestion === i ? 'selected' : ''}>${escapeHtml(q)}</option>`).join('')}</select><label class="form-label" for="loginSecurityAnswer">Security answer</label><input class="text-input" id="loginSecurityAnswer" autocomplete="off" placeholder="Jawab yaad rakhein — recovery isi se hogi" value="${escapeHtml(state.loginSecurityAnswer)}">${error}<button class="btn btn-primary" data-action="login-create">Create account &amp; sign in ${icon('arrowRight', 15)}</button><div class="otp-note">${icon('user', 13)} Already have an ID? <button class="text-link" data-action="login-mode" data-mode="signin">Sign in</button></div>`;
   else panel = forgotPanel();
-  return `<div class="login-screen"><button class="lang-btn login-lang" data-action="open-language-menu" aria-label="Choose language">${icon('globe', 15)}<span>${currentLanguage().native}</span></button><section class="login-visual"><div class="brand"><span class="brand-mark">M</span><div><div class="brand-name">Manthan Prep</div><div class="brand-sub">Analytical learning</div></div></div><div class="login-quote"><div class="eyebrow">For the serious aspirant</div><h1>Think clearly.<br><em>Prepare deeply.</em></h1><p>A calm, analytical workspace for the long road to public service – concepts, current affairs, practice and accountability in one place.</p></div><div class="login-feature-row"><div class="login-feature"><strong>13 study surfaces</strong>From syllabus to answer writing</div><div class="login-feature"><strong>Detailed explanations</strong>Learn beyond right or wrong</div><div class="login-feature"><strong>Peer accountability</strong>Progress together</div></div></section><section class="login-panel"><div class="login-box"><div class="brand"><span class="brand-mark">M</span><div><div class="brand-name">Manthan Prep</div><div class="brand-sub">Analytical learning</div></div></div>${tabs}${panel}<p style="font-size:10px;color:#a0adbb;margin-top:28px;text-align:center">By continuing, you agree to Manthan Prep’s terms and privacy policy.</p></div></section></div>`;
+  return `<div class="login-screen"><button class="lang-btn login-lang" data-action="open-language-menu" aria-label="Choose language">${icon('globe', 15)}<span>${currentLanguage().native}</span></button><section class="login-visual"><div class="brand"><span class="brand-mark">M</span><div><div class="brand-name">Manthan Prep</div><div class="brand-sub">Analytical learning</div></div></div><div class="login-quote"><div class="eyebrow">For the serious aspirant</div><h1>Think clearly.<br><em>Prepare deeply.</em></h1><p>A calm, analytical workspace for the long road to public service – concepts, current affairs, practice and accountability in one place.</p></div><div class="login-feature-row"><div class="login-feature"><strong>13 study surfaces</strong>From syllabus to answer writing</div><div class="login-feature"><strong>Detailed explanations</strong>Learn beyond right or wrong</div><div class="login-feature"><strong>Peer accountability</strong>Progress together</div></div></section><section class="login-panel"><div class="login-box"><div class="brand"><span class="brand-mark">M</span><div><div class="brand-name">Manthan Prep</div><div class="brand-sub">Analytical learning</div></div></div>${tabs}${panel}${installHint}<p style="font-size:10px;color:#a0adbb;margin-top:28px;text-align:center">By continuing, you agree to Manthan Prep’s terms and privacy policy.</p></div></section></div>`;
 }
 
 function renderPhotoLayer() {
@@ -1851,6 +1857,20 @@ function handleAction(action, el) {
     case 'login-mode': state.loginMode = data.mode === 'create' ? 'create' : (data.mode === 'forgot' ? 'forgot' : 'signin'); state.loginError = ''; state.forgotStep = 1; render(); break;
     case 'open-language-menu': state.languageMenuOpen = true; render(); break;
     case 'close-language-menu': state.languageMenuOpen = false; render(); break;
+    case 'install-app': {
+      const deferred = window.__manthanInstallPrompt;
+      if (deferred) {
+        deferred.prompt();
+        if (deferred.userChoice && typeof deferred.userChoice.then === 'function') {
+          deferred.userChoice.then(() => {
+            window.__manthanInstallPrompt = null;
+            try { localStorage.setItem('manthanInstallHintDismissed', '1'); } catch (e) { /* optional */ }
+            render();
+          });
+        }
+      }
+      break;
+    }
     case 'select-ui-language': {
       const code = indianLanguages.some(item => item.code === data.lang) ? data.lang : 'en';
       state.uiLanguage = code;
@@ -2021,6 +2041,15 @@ document.addEventListener('change', event => {
   if (target.matches('[data-syllabus-subject]')) toast(target.checked ? 'Topic marked as covered.' : 'Topic moved back to your plan.');
   if (target.matches('[data-topic-subject]')) toast(target.checked ? 'Concept marked complete.' : 'Concept moved back to your plan.');
 });
+
+// Capture the browser's install prompt so the login screen can offer "Install app".
+if (typeof window.addEventListener === 'function') {
+  window.addEventListener('beforeinstallprompt', event => {
+    event.preventDefault();
+    window.__manthanInstallPrompt = event;
+    render();
+  });
+}
 
 // Re-trigger only the Home Page ring when the page/tab becomes visible again.
 if (typeof window.addEventListener === 'function') {
