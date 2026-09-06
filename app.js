@@ -848,6 +848,9 @@ function finishTwoDeckQuiz(autoSubmitted = false) {
   const historyEntry = { ...stats, deck: state.quizDeck, subject: state.quizDeck === 'subject' ? state.quizSubject : 'Mixed subjects', language: state.quizLanguage, autoSubmitted, date: new Date().toISOString() };
   state.quizHistory = [historyEntry, ...state.quizHistory].slice(0, 20);
   try { localStorage.setItem('manthanQuizHistory', JSON.stringify(state.quizHistory)); } catch (e) { /* persistence is optional in preview */ }
+  if (typeof queueCloud === 'function' && typeof cloudPost === 'function') {
+    queueCloud(`attempt-${Date.now()}`, () => cloudPost('/stats/attempts', { userId: state.accountId || 'guest', score: historyEntry.score, accuracy: historyEntry.accuracy, deck: historyEntry.deck, subject: historyEntry.subject || '', at: Date.now() }));
+  }
   render();
   toast(autoSubmitted ? 'Time is up. Your quiz was submitted automatically.' : 'Quiz submitted. Your analytics are ready.');
 }
@@ -1377,7 +1380,16 @@ function renderProfile() {
 function manthanUsers() {
   try { const value = JSON.parse(localStorage.getItem('manthanUsers') || '{}'); return value && typeof value === 'object' ? value : {}; } catch (e) { return {}; }
 }
-function saveManthanUsers(users) { try { localStorage.setItem('manthanUsers', JSON.stringify(users)); } catch (e) { /* storage optional in preview */ } }
+function saveManthanUsers(users) {
+  try { localStorage.setItem('manthanUsers', JSON.stringify(users)); } catch (e) { /* storage optional in preview */ }
+  if (typeof queueCloud === 'function') {
+    queueCloud('users', async () => {
+      const payload = {};
+      for (const [id, rec] of Object.entries(users)) payload[cloudSafeKey(id)] = Object.assign({}, rec, { id });
+      await cloudSet('/users', payload);
+    });
+  }
+}
 function hashText(text) {
   let h1 = 0x811c9dc5; let h2 = 0x01000193;
   for (let i = 0; i < text.length; i += 1) {
@@ -1564,13 +1576,56 @@ function ensureAdminAccount() {
   }
 }
 function readCustomList(key) { try { const list = JSON.parse(localStorage.getItem(key) || '[]'); return Array.isArray(list) ? list : []; } catch (e) { return []; } }
-function writeCustomList(key, list) { try { localStorage.setItem(key, JSON.stringify(list)); } catch (e) { /* optional */ } }
+function writeCustomList(key, list) {
+  try { localStorage.setItem(key, JSON.stringify(list)); } catch (e) { /* optional */ }
+  if (typeof queueCloud === 'function') {
+    queueCloud('content', async () => {
+      await cloudSet('/content', { quiz: readCustomList('manthanQuizCustom'), paheli: readCustomList('manthanPaheliCustom'), timetable: readCustomList('manthanTimetableCustom') });
+    });
+  }
+}
 function loadCustomContent() {
   readCustomList('manthanQuizCustom').forEach(item => { if (item && item.id !== undefined && !quizDatabase.some(question => String(question.id) === String(item.id))) quizDatabase.push(item); });
   readCustomList('manthanPaheliCustom').forEach(item => { if (item && item.id !== undefined && !paheliData.some(entry => String(entry.id) === String(item.id))) paheliData.push(item); });
   readCustomList('manthanTimetableCustom').forEach(item => { if (item && item.id !== undefined && !timetableData.some(slot => String(slot.id) === String(item.id))) timetableData.push(item); });
 }
-try { loadCustomContent(); ensureAdminAccount(); } catch (e) { /* optional */ }
+async function initCloudSync() {
+  if (typeof cloudGet !== 'function' || typeof cloudHasFetch !== 'function' || !cloudHasFetch()) return;
+  try {
+    const remoteUsers = (await cloudGet('/users')) || {};
+    const local = manthanUsers();
+    let changed = false;
+    for (const rec of Object.values(remoteUsers)) {
+      if (!rec || !rec.id) continue;
+      const id = normalizeLoginId(rec.id);
+      if (!id || local[id]) continue;
+      local[id] = rec;
+      changed = true;
+    }
+    if (changed) { try { localStorage.setItem('manthanUsers', JSON.stringify(local)); } catch (e) { /* optional */ } }
+    const payload = {};
+    for (const [id, rec] of Object.entries(local)) payload[cloudSafeKey(id)] = Object.assign({}, rec, { id });
+    await cloudSet('/users', payload);
+    const remoteContent = (await cloudGet('/content')) || {};
+    let contentChanged = false;
+    [['quiz', 'manthanQuizCustom'], ['paheli', 'manthanPaheliCustom'], ['timetable', 'manthanTimetableCustom']].forEach(([section, key]) => {
+      const remote = Array.isArray(remoteContent[section]) ? remoteContent[section] : [];
+      const localList = readCustomList(key);
+      let changedHere = false;
+      remote.forEach(item => {
+        if (item && item.id !== undefined && !localList.some(existing => String(existing.id) === String(item.id))) { localList.push(item); changedHere = true; }
+      });
+      if (changedHere) { writeCustomList(key, localList); contentChanged = true; }
+    });
+    if (contentChanged) loadCustomContent();
+    await cloudSet('/content', { quiz: readCustomList('manthanQuizCustom'), paheli: readCustomList('manthanPaheliCustom'), timetable: readCustomList('manthanTimetableCustom') });
+    manthanCloud.online = true;
+    if (changed || contentChanged) render();
+  } catch (e) {
+    manthanCloud.online = false;
+  }
+}
+try { loadCustomContent(); ensureAdminAccount(); initCloudSync(); } catch (e) { /* optional */ }
 
 function renderAdminUsers() {
   const users = manthanUsers();
@@ -1634,7 +1689,7 @@ function renderAdminStats() {
 function renderAdmin() {
   const tab = state.adminTab === 'content' || state.adminTab === 'stats' ? state.adminTab : 'users';
   const tabButton = (id, label) => `<button class="login-tab ${tab === id ? 'active' : ''}" role="tab" data-action="admin-tab" data-tab="${id}">${label}</button>`;
-  return `<div class="admin-screen"><div class="admin-header"><div><div class="eyebrow">Control centre</div><h2>Admin Panel</h2><p>Users, content aur stats — sab ek jagah se manage karo.</p></div><span class="badge badge-gold">${icon('shield', 12)} ${escapeHtml(accountDisplayName())}</span></div><div class="login-tabs admin-tabs" role="tablist">${tabButton('users', 'Users')}${tabButton('content', 'Content')}${tabButton('stats', 'Stats')}</div>${tab === 'users' ? renderAdminUsers() : tab === 'content' ? renderAdminContent() : renderAdminStats()}</div>`;
+  return `<div class="admin-screen"><div class="admin-header"><div><div class="eyebrow">Control centre</div><h2>Admin Panel</h2><p>Users, content aur stats — sab ek jagah se manage karo.</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><span class="badge ${typeof manthanCloud !== 'undefined' && manthanCloud.online ? 'badge-aqua' : 'badge-slate'}">${typeof manthanCloud !== 'undefined' && manthanCloud.online ? icon('circleCheck', 12) + ' Server connected' : icon('info', 12) + ' Local mode'}</span><span class="badge badge-gold">${icon('shield', 12)} ${escapeHtml(accountDisplayName())}</span></div></div><div class="login-tabs admin-tabs" role="tablist">${tabButton('users', 'Users')}${tabButton('content', 'Content')}${tabButton('stats', 'Stats')}</div>${tab === 'users' ? renderAdminUsers() : tab === 'content' ? renderAdminContent() : renderAdminStats()}</div>`;
 }
 
 function renderScreen() {

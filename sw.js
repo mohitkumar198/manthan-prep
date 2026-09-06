@@ -3,6 +3,7 @@ const CACHE = 'manthan-v1';
 const ASSETS = [
   './',
   './index.html',
+  './cloud.js',
   './app.js',
   './styles.css',
   './profile_repository.js',
